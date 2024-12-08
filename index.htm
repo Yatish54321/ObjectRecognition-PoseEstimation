@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Object Detection & Pose Estimation</title>
+  <style>
+                /*Times New Roman*/
+    body { 
+      margin: 0;
+      font-family: 'Times New Roman', Times, serif;
+      color: #333;
+      position: relative; /* Positioning for background and GIFs */
+      overflow-y: auto; /* Enable vertical scrolling */
+      overflow-x: hidden; /* Prevent horizontal scrolling */
+      scroll-behavior: smooth; /* Smooth scrolling */
+      background: linear-gradient(to bottom, #000428, #004e92); /* Gradient background */
+      display: flex;
+      flex-direction: column; /* Stack elements vertically */
+      align-items: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    h1 {
+      font-size: 3.8rem;
+      color: #1e90ff;
+      position: relative;
+      margin-left: 200px;
+      margin-right: 10px;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      animation: floatText 3s infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes floatText {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .code-section {
+      display: none; /* Initially hide the code section */
+      margin: 20px auto; /* Center the container with some margin */
+      padding: 20px;
+      background: #1e1e1e; /* Dark background for the code container */
+      color: #00ff00; /* Hacker green text */
+      font-family: 'Courier New', monospace; /* Monospace font for code */
+      border-radius: 10px; /* Rounded corners */
+      width: 90%; /* Adjust width based on the container */
+      max-width: 800px; /* Maximum width */
+      height: 400px; /* Set fixed height for the container */
+      overflow-y: auto; /* Enable vertical scrolling if content overflows */
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+      border: 1px solid #333; /* Optional border for separation */
+      position: relative; /* Position for interactive features */
+      transition: transform 0.3s, box-shadow 0.3s; /* Smooth interaction effects */
+    }
+    
+    
+
+    /* Hover interaction for the code container */
+    .code-section:hover {
+      transform: scale(1.02); /* Slight zoom on hover */
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5); /* Enhanced shadow */
+    }
+
+    /* Smooth scroll behavior for the entire webpage */
+    html {
+      scroll-behavior: smooth; /* Makes in-page links scroll smoothly */
+    }
+
+    /* Optional scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 10px; /* Width of the scrollbar */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a5298; /* Color of the scrollbar thumb */
+      border-radius: 5px; /* Rounded scrollbar */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1e3c72; /* Hover effect on scrollbar */
+    }
+    
+
+
+    .button-container {
+      margin-top: 10px;
+      margin-left: 10px;
+    }
+    .button {
+      background: linear-gradient(135deg, #00bfff, #1e90ff);
+      color: white;
+      font-size: 1.5rem;
+      border: none;
+      padding: 15px 25px;
+      margin: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .button:active {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+    .info-section {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      width: 80%;
+      max-width: 1000px;
+      color: #333;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .info-section h2 {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 3.5rem;
+      color: #1e90ff;
+    }
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .feature-item {
+      position: relative;
+      width: 200px;
+      height: 100px;
+      background: #f1f1f1;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 1.2rem;
+      text-align: center;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.3s, background 0.3s;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .feature-item:hover {
+      background: #e0e4e7;
+      transform: scale(1.05);
+    }
+    /* Hover container for the content box */
+    .feature-content {
+      position: absolute;
+      top: 100%; /* Position below the container */
+      left: 50%;
+      transform: translateX(-50%) scaleY(0); /* Initially hidden and collapsed vertically */
+      transform-origin: top;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2);
+      width: 200px;
+      z-index: 10;
+      border: 1px solid #ddd;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0; /* Initially invisible */
+    }
+
+    .feature-item:hover .feature-content {
+      display: block;
+      transform: translateX(-50%) scaleY(1); /* Open the box */
+      opacity: 1; /* Make it visible */
+    }
+
+    /* Position the GIFs on the left and right side */
+    .left-gif, .right-gif {
+      position: fixed;
+      top: 20%;
+      transform: translateY(-50%);
+      z-index: -1; /* Send GIFs behind the content */
+    }
+
+    .left-gif {
+      left: 0;
+      width: 300px;
+    }
+
+    .right-gif {
+      right: 0;
+      width: 300px;
+    }
+
+    .left-gif img, .right-gif img {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    }
+      
+
+    .gif-container {
+      width: 80vw;
+      height: 80vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      animation: snapIn 1.5s ease-out forwards;
+    }
+
+    .gif-container::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('your-animation.gif');
+      background-size: cover;
+      background-position: center;
+      mix-blend-mode: screen;
+      opacity: 0;
+      animation: fadeIn 2s ease-out 1.5s forwards;
+    }
+
+    @keyframes snapIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+
+    ::-webkit-scrollbar {
+      width: 10px; /* Width of the scrollbar */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a5298; /* Color of the scrollbar thumb */
+      border-radius: 5px; /* Rounded scrollbar */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1e3c72; /* Hover effect on scrollbar */
+    }
+    
+
+
+    
+  </style>
+</head>
+<body>
+  <!-- Left GIF for Object Detection -->
+  <div class="left-gif">
+    <img src="1.gif" alt="Object Detection Animation">
+  </div>
+
+
+  <div class="container">
+    <h1>Object Detection & Pose Estimation</h1>
+    <div class="button-container">
+      <button class="button" onclick="openGitHub()">View GitHub Repository</button>
+      <button class="button" onclick="showCode('yolo')">View YOLO Code</button>
+      <button class="button" onclick="showCode('pose')">View Pose Detection Code</button>
+    </div>
+    <div id="code-section" class="code-section">
+      <h3 style="color: #1e90ff;"></h3>
+      <pre id="code-content"></pre>
+    </div>
+
+    <!-- Key Features Section -->
+    <div class="info-section">
+      <h2>Key Features</h2>
+      <div class="feature-list">
+        <div class="feature-item">
+          Real-Time Object Detection
+          <div class="feature-content">Detects and highlights objects in live video streams.</div>
+        </div>
+        <div class="feature-item">
+          Accurate Distance Measurement
+          <div class="feature-content">Calculates object distances with precision.</div>
+        </div>
+        <div class="feature-item">
+          Multi-Object Recognition
+          <div class="feature-content">Recognizes over 80 types of objects instantly.</div>
+        </div>
+        <div class="feature-item">
+          Dynamic Camera Calibration
+          <div class="feature-content">Automatically adapts to any camera setup.</div>
+        </div>
+        <div class="feature-item">
+          Visual Enhancements
+          <div class="feature-content">Displays objects with styled bounding boxes and labels.</div>
+        </div>
+        <div class="feature-item">
+          Pose Structure of Objects
+          <div class="feature-content">Pose Estimation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const YOLO_CODE = `
+from ultralytics import YOLO
+import cv2
+import cvzone
+import math
+
+# Function to calculate distance
+def calculate_distance(known_width, focal_length, per_width):
+    return (known_width * focal_length) / per_width
+
+# Function to get focal length based on object width and known distance
+def get_focal_length(known_width, known_distance, per_width):
+    return (per_width * known_distance) / known_width
+
+cap = cv2.VideoCapture(0)
+cap.set(3, 2500)
+cap.set(4, 1200)
+
+model = YOLO("../Yolo_Weights/yolov8n.pt")
+classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
+              "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+              "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+              "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+              "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+              "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
+              "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
+              "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
+              "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+              "teddy bear", "hair drier", "toothbrush"
+              ]
+
+# Set known width and known distance (calibrate based on your camera and setup)
+known_width = 20.0  # Example: width of a standard object in inches
+known_distance = 24.0  # Example: distance from the camera to the object in inches
+focal_length = -1  # Initialize focal length, to be calculated during the first iteration
+
+while True:
+    success, img = cap.read()
+    results = model(img, stream=True)
+
+    for r in results:
+        boxes = r.boxes
+        for box in boxes:
+            x1, y1, x2, y2 = box.xyxy[0]
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+            w, h = x2 - x1, y2 - y1
+            cvzone.cornerRect(img, (x1, y1, w, h))
+
+            conf = math.ceil((box.conf[0] * 100)) / 100
+            cls = int(box.cls[0])
+
+            cvzone.putTextRect(img, f'{classNames[cls]} {conf}', (max(0, x1), max(35, y1)), scale=0.7, thickness=1)
+
+            # Calculate distance based on known width and focal length
+            if focal_length == -1:
+                # Calculate focal length during the first iteration
+                focal_length = get_focal_length(known_width, known_distance, w)
+
+            distance = calculate_distance(known_width, focal_length, w)
+            cv2.putText(img, f'Distance: {distance:.2f} inches', (x1, y1 - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+    cv2.imshow("Image", img)
+    cv2.waitKey(1)
+    `;
+
+    const POSE_CODE = `
+import cv2
+import mediapipe as mp
+import time
+import ctypes
+
+mpDraw = mp.solutions.drawing_utils
+mpPose = mp.solutions.pose
+pose = mpPose.Pose()
+
+cap = cv2.VideoCapture('Videos/7.mp4')
+
+# Get screen resolution
+user32 = ctypes.windll.user32
+screen_width, screen_height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+# Get original video size;
+original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+# Calculate the aspect ratio
+aspect_ratio = original_width / original_height
+
+# print(screen_width, screen_height)
+
+# Calculate the new video size to fit the screen
+if aspect_ratio > 1:
+    video_width = min(original_width, screen_width)
+    video_height = int(video_width / aspect_ratio)
+else:
+    video_height = min(original_height, screen_height)
+    video_width = int(video_height * aspect_ratio)
+
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, video_width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, video_height)
+
+pTime = 0
+while True:
+    success, img = cap.read()
+    if not success:
+        break
+
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    results = pose.process(imgRGB)
+
+    if results.pose_landmarks:
+        mpDraw.draw_landmarks(img, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+        for id, lm in enumerate(results.pose_landmarks.landmark):
+            h, w, c = img.shape
+            cx, cy = int(lm.x * w), int(lm.y * h)
+            cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+
+    cTime = time.time()
+    fps = 1 / (cTime - pTime)
+    pTime = cTime
+
+    cv2.putText(img, f'FPS: {int(fps)}', (100, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 3)
+
+    cv2.imshow("Image", img)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+    `;
+
+    function openGitHub() {
+      window.open('https://github.com/Yatish54321/ObjectRecognition-PoseEstimation', '_blank');
+    }
+
+    function showCode(type) {
+      const codeSection = document.getElementById('code-section');
+      const codeContent = document.getElementById('code-content');
+      
+      // Toggle visibility of the code section
+      if (codeSection.style.display === 'block') {
+        codeSection.style.display = 'none';  // Hide the section if it's visible
+      } else {
+        // Display the code section
+        codeSection.style.display = 'block';
+        if (type === 'yolo') {
+          codeContent.textContent = YOLO_CODE;
+        } else if (type === 'pose') {
+          codeContent.textContent = POSE_CODE;
+        }
+        window.scrollTo({ top: codeSection.offsetTop, behavior: 'smooth' });
+      }
+    }
+    
+    
+  </script>
+</body>
+</html>
